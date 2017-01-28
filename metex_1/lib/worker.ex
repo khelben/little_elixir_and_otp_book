@@ -1,4 +1,29 @@
 defmodule Metex.Worker do
+
+  @doc """
+  first version of the Worker.
+
+  call as follows in iex
+
+    > cities = ["Singapore", "Monaco", "Vatican City", "Hong Kong", "Macau"]
+    > cities |> Enum.map(fn city ->
+        pid = spawn(Metex.Worker, :loop, [])
+        send(pid, {self(), city})
+      end)
+    > flush() # => get the results
+  """
+  def loop do
+    receive do
+      {sender_pid, location} ->
+        send(sender_pid, {:ok, temperature_of(location)})
+      _ ->
+        IO.puts "don't know how to process this message"
+    end
+    # no need to recursively call myself, as I will be spawned
+    # only to lookup the temperature once.
+    # loop()
+  end
+
   def temperature_of(location) do
     result = url_for(location) |> HTTPoison.get |> parse_response
     case result do
